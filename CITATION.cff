@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: "robometrics"
+message: "If you use this software, please cite it using the metadata in this file."
+authors:
+  - family-names: "Sanghi"
+    given-names: "Nitish"
+license: "MIT"
+repository-code: "https://github.com/<ORG>/<REPO>"
+version: "0.1.0"
+date-released: "2026-01-22"
