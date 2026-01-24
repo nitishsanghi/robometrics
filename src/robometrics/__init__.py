@@ -1,6 +1,15 @@
 """robometrics package."""
 
-from robometrics.model import Event, Run, SPEC_VERSION, Stream
+from robometrics.model import (
+    Event,
+    MetricResult,
+    Run,
+    Scenario,
+    ScenarioSet,
+    ScoreCard,
+    SPEC_VERSION,
+    Stream,
+)
 from robometrics.validate.schema_report import SchemaReport
 
 __all__ = [
@@ -9,6 +18,10 @@ __all__ = [
     "Stream",
     "Event",
     "Run",
+    "Scenario",
+    "ScenarioSet",
+    "MetricResult",
+    "ScoreCard",
     "SchemaReport",
 ]
 
