@@ -66,6 +66,8 @@ class Run:
 
         if not isinstance(meta, dict):
             raise ValueError("Run meta must be a dict")
+        if any(not isinstance(key, str) for key in meta):
+            raise ValueError("Run meta keys must be strings")
         if not isinstance(streams, dict):
             raise ValueError("Run streams must be a dict")
         if not isinstance(events, list):

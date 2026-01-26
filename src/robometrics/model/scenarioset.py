@@ -46,6 +46,9 @@ class ScenarioSet:
         scenarios = payload.get("scenarios", [])
         if not isinstance(runs, dict):
             raise ValueError("ScenarioSet runs must be a dict")
+        for key, value in runs.items():
+            if not isinstance(value, dict):
+                raise ValueError(f"ScenarioSet runs[{key!r}] must be a dict")
         if not isinstance(scenarios, list):
             raise ValueError("ScenarioSet scenarios must be a list")
         return cls(
