@@ -23,7 +23,10 @@ class ScenarioSet:
             )
 
     def to_dict(self) -> dict[str, object]:
-        ordered_runs = {key: self.runs[key] for key in sorted(self.runs)}
+        ordered_runs = {
+            key: {k: v for k, v in sorted(self.runs[key].items())}
+            for key in sorted(self.runs)
+        }
         return {
             "spec_version": self.spec_version,
             "scenario_set_id": self.scenario_set_id,

@@ -35,8 +35,18 @@ class Run:
             filtered.append(event)
         return filtered
 
+    @staticmethod
+    def _sort_structure(value: object) -> object:
+        if isinstance(value, dict):
+            return {key: Run._sort_structure(value[key]) for key in sorted(value)}
+        if isinstance(value, list):
+            return [Run._sort_structure(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(Run._sort_structure(item) for item in value)
+        return value
+
     def to_dict(self) -> dict[str, object]:
-        ordered_meta = {key: self.meta[key] for key in sorted(self.meta)}
+        ordered_meta = Run._sort_structure(self.meta)
         ordered_streams = {
             key: self.streams[key].to_dict() for key in sorted(self.streams)
         }

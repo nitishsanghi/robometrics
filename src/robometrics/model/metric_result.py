@@ -29,10 +29,12 @@ class MetricResult:
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> "MetricResult":
         direction = str(payload["direction"])
+        units = str(payload["units"]) if payload.get("units") is not None else None
+        notes = str(payload["notes"]) if payload.get("notes") is not None else None
         return cls(
             value=payload.get("value"),
-            units=payload.get("units"),
+            units=units,
             direction=direction,
             valid=bool(payload["valid"]),
-            notes=payload.get("notes"),
+            notes=notes,
         )
