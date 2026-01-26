@@ -61,7 +61,9 @@ class Stream:
             raise ValueError("Stream data must be a dict")
         typed_data: dict[str, list[float | int | str | bool | None]] = {}
         for key, values in data.items():
-            if not isinstance(values, Iterable):
-                raise ValueError(f"Stream data column '{key}' must be iterable")
+            if isinstance(values, (str, bytes)) or not isinstance(values, Iterable):
+                raise ValueError(
+                    f"Stream data column '{key}' must be iterable and not a string"
+                )
             typed_data[str(key)] = list(values)
         return cls(name=name, t=[float(x) for x in t], data=typed_data)

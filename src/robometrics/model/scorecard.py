@@ -29,9 +29,7 @@ class ScoreCard:
         ordered_metrics = {
             key: self.metrics[key].to_dict() for key in sorted(self.metrics)
         }
-        ordered_provenance = {
-            key: self.provenance[key] for key in sorted(self.provenance)
-        }
+        ordered_provenance = ScoreCard._sort_structure(self.provenance)
         return {
             "spec_version": self.spec_version,
             "scorecard_id": self.scorecard_id,
@@ -41,6 +39,16 @@ class ScoreCard:
             "metrics": ordered_metrics,
             "created_at": self.created_at,
         }
+
+    @staticmethod
+    def _sort_structure(value: object) -> object:
+        if isinstance(value, dict):
+            return {key: ScoreCard._sort_structure(value[key]) for key in sorted(value)}
+        if isinstance(value, list):
+            return [ScoreCard._sort_structure(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(ScoreCard._sort_structure(item) for item in value)
+        return value
 
     @classmethod
     def from_dict(cls, payload: dict[str, object]) -> "ScoreCard":

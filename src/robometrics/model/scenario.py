@@ -15,6 +15,10 @@ class Scenario:
     tags: dict[str, str] = field(default_factory=dict)
     eval_profile: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.t1 <= self.t0:
+            raise ValueError("Scenario t1 must be greater than t0")
+
     def to_dict(self) -> dict[str, object]:
         ordered_tags = {key: self.tags[key] for key in sorted(self.tags)}
         return {

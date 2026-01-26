@@ -33,4 +33,7 @@ class SchemaReport:
             raise ValueError("SchemaReport errors must be a list")
         if not isinstance(warnings, list):
             raise ValueError("SchemaReport warnings must be a list")
-        return cls(errors=list(errors), warnings=list(warnings))
+        return cls(
+            errors=[str(item) for item in errors],
+            warnings=[str(item) for item in warnings],
+        )
