@@ -26,6 +26,8 @@ def test_run_io_roundtrip(tmp_path):
     assert set(restored.streams.keys()) == set(run.streams.keys())
     assert len(restored.events) == len(run.events)
     assert restored_report.warnings == report.warnings
+    assert restored.streams["state"].data["x"] == run.streams["state"].data["x"]
+    assert restored.events[0].attrs == run.events[0].attrs
 
     meta_payload = json.loads((out_dir / "meta.json").read_text())
     assert meta_payload["run_id"] == run.run_id

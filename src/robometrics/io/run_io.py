@@ -127,7 +127,11 @@ def _frame_to_events(frame: pd.DataFrame) -> list[Event]:
 
     events: list[Event] = []
     for _, row in frame.iterrows():
-        attrs = json.loads(row["attrs_json"]) if row["attrs_json"] else {}
+        attrs_raw = row["attrs_json"]
+        if pd.isna(attrs_raw) or not attrs_raw:
+            attrs = {}
+        else:
+            attrs = json.loads(attrs_raw)
         events.append(Event(t=float(row["t"]), name=str(row["name"]), attrs=attrs))
     return events
 

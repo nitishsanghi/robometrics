@@ -14,6 +14,8 @@ SPEC_VERSION = "0.1.0"
 
 
 def _build_run_rows(seed: int, n: int, aggressive: bool) -> dict[str, list[object]]:
+    if n <= 0:
+        raise ValueError("n must be greater than 0")
     rng = random.Random(seed)
     t = [i * 0.1 for i in range(n)]
 

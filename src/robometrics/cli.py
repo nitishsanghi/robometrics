@@ -22,13 +22,21 @@ def _handle_ingest(args: argparse.Namespace) -> int:
         print(f"Unsupported adapter: {args.adapter}", file=sys.stderr)
         return 2
 
-    run, report = DemoLogAdapter.read(Path(args.input))
+    try:
+        run, report = DemoLogAdapter.read(Path(args.input))
+    except Exception as exc:  # noqa: BLE001
+        print(f"Failed to read input: {exc}", file=sys.stderr)
+        return 1
     if report.errors:
         for error in report.errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
-    out_path = RunWriter.write(run, report, Path(args.out))
+    try:
+        out_path = RunWriter.write(run, report, Path(args.out))
+    except Exception as exc:  # noqa: BLE001
+        print(f"Failed to write output: {exc}", file=sys.stderr)
+        return 1
     print(out_path)
     return 0
 

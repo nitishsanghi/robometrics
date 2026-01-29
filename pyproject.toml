@@ -26,7 +26,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Robotics"
 ]
 dependencies = [
-  "pandas>=2.0",
+  "pandas>=2.2",
   "pyarrow>=14.0"
 ]
 

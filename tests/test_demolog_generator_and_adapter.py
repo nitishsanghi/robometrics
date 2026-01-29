@@ -8,11 +8,6 @@ def test_demolog_generator_and_adapter(tmp_path):
     out_dir = tmp_path / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    baseline_dir = out_dir / "baseline"
-    candidate_dir = out_dir / "candidate"
-    baseline_dir.mkdir(parents=True, exist_ok=True)
-    candidate_dir.mkdir(parents=True, exist_ok=True)
-
     result = subprocess.run(
         [
             sys.executable,
@@ -26,7 +21,12 @@ def test_demolog_generator_and_adapter(tmp_path):
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0
+    assert (
+        result.returncode == 0
+    ), f"Generator failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+
+    baseline_dir = out_dir / "baseline"
+    candidate_dir = out_dir / "candidate"
 
     run, report = DemoLogAdapter.read(baseline_dir / "run_000")
     assert report.ok()

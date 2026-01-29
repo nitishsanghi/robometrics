@@ -9,8 +9,8 @@ import pandas as pd
 
 def write_parquet(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(path, index=False)
+    df.to_parquet(path, index=False, engine="pyarrow")
 
 
 def read_parquet(path: Path) -> pd.DataFrame:
-    return pd.read_parquet(path)
+    return pd.read_parquet(path, engine="pyarrow")

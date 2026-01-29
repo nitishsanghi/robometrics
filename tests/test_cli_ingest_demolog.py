@@ -20,7 +20,7 @@ def test_cli_ingest_demolog(tmp_path):
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0
+    assert result.returncode == 0, result.stderr or result.stdout
 
     run_dir = data_dir / "baseline" / "run_000"
 
@@ -41,7 +41,7 @@ def test_cli_ingest_demolog(tmp_path):
         capture_output=True,
         text=True,
     )
-    assert ingest.returncode == 0
+    assert ingest.returncode == 0, ingest.stderr or ingest.stdout
 
     meta_path = runs_dir / "run_000" / "meta.json"
     assert meta_path.exists()

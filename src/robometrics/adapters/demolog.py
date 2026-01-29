@@ -176,8 +176,6 @@ def _build_streams(
         _warn_if_non_numeric(
             run_df["obstacle.min_distance"], report, "obstacle.min_distance"
         )
-    elif "obstacle.min_distance" in optional_columns:
-        report.add_warning("obstacle.min_distance column not present")
 
     return streams
 
@@ -218,7 +216,9 @@ def _build_events(events_df: pd.DataFrame, report: SchemaReport) -> list[Event]:
                 try:
                     attrs = json.loads(str(attrs_value))
                 except json.JSONDecodeError:
-                    report.add_warning("event attrs could not be parsed as JSON")
+                    report.add_warning(
+                        f"event at t={row['t']} attrs could not be parsed as JSON"
+                    )
                     attrs = {}
         events.append(Event(t=float(row["t"]), name=str(row["name"]), attrs=attrs))
     return events
