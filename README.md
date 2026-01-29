@@ -11,6 +11,11 @@ robometrics is a lightweight, scenario-based offline evaluation toolkit for robo
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 robometrics --help
+
+# Generate demo logs and ingest them into canonical run artifacts
+python examples/generate_demolog.py --out /tmp/robometrics-data --seed 0
+robometrics ingest --adapter demolog --input /tmp/robometrics-data/baseline/run_000 --out /tmp/robometrics-runs
+ls /tmp/robometrics-runs/run_000
 ```
 
 ## Development

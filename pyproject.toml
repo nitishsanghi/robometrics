@@ -25,7 +25,10 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Robotics"
 ]
-dependencies = []
+dependencies = [
+  "pandas>=2.0",
+  "pyarrow>=14.0"
+]
 
 [project.optional-dependencies]
 dev = [
