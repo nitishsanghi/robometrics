@@ -18,6 +18,7 @@ from robometrics.validate.schema_report import SchemaReport
 class RunWriter:
     @staticmethod
     def write(run: Run, report: SchemaReport, out_dir: Path) -> Path:
+        _validate_run_id(run.run_id)
         run_dir = out_dir / run.run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -42,6 +43,11 @@ class RunReader:
     @staticmethod
     def read(run_dir: Path) -> tuple[Run, SchemaReport]:
         meta_payload = _read_json(run_dir / "meta.json")
+        spec_version = meta_payload.get("spec_version")
+        if spec_version and spec_version != SPEC_VERSION:
+            raise ValueError(
+                f"Unsupported spec_version {spec_version} (expected {SPEC_VERSION})"
+            )
         run_id = str(meta_payload.get("run_id", ""))
         meta = meta_payload.get("meta", {})
         if not isinstance(meta, dict):
@@ -143,3 +149,10 @@ def _write_json(path: Path, payload: dict[str, object]) -> None:
 
 def _read_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text())
+
+
+def _validate_run_id(run_id: str) -> None:
+    if not run_id or run_id.strip() != run_id:
+        raise ValueError("run_id must be a non-empty string without whitespace")
+    if any(sep in run_id for sep in ("/", "\\")) or ".." in run_id:
+        raise ValueError("run_id must not contain path separators or '..'")

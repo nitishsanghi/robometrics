@@ -184,9 +184,17 @@ def _warn_if_non_numeric(series: pd.Series, report: SchemaReport, label: str) ->
     if not pd.api.types.is_numeric_dtype(series):
         report.add_warning(f"{label} column is not numeric")
         return
-    values = [float(value) for value in series.tolist()]
-    if any(not math.isfinite(value) for value in values):
-        report.add_warning(f"{label} column contains non-finite values")
+
+    converted = pd.to_numeric(series, errors="coerce")
+    non_null_original = series.notna()
+    non_null_converted = converted.notna()
+    if (non_null_original & ~non_null_converted).any():
+        report.add_warning(f"{label} column contains non-numeric values")
+
+    for value in converted[converted.notna()]:
+        if not math.isfinite(float(value)):
+            report.add_warning(f"{label} column contains non-finite values")
+            break
 
 
 def _build_events(events_df: pd.DataFrame, report: SchemaReport) -> list[Event]:

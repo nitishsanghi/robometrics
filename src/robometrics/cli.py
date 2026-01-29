@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 
 from robometrics import __version__
-from robometrics.adapters.demolog import DemoLogAdapter
 from robometrics.io.run_io import RunWriter
 
 
@@ -23,6 +22,8 @@ def _handle_ingest(args: argparse.Namespace) -> int:
         return 2
 
     try:
+        from robometrics.adapters.demolog import DemoLogAdapter
+
         run, report = DemoLogAdapter.read(Path(args.input))
     except Exception as exc:  # noqa: BLE001
         print(f"Failed to read input: {exc}", file=sys.stderr)
