@@ -73,6 +73,18 @@ def _mine_event_rule(
         t1 = event.t + rule.window.post_s
         t0, t1 = _clamp_window(t0, t1, bounds)
         scenario_id = _scenario_id(rule.rule_id, run.run_id, t0, t1, idx)
+        if t1 <= t0:
+            report.add_warning(
+                "Rule '{rule_id}' run '{run_id}' scenario '{scenario_id}' "
+                "skipped due to non-positive window ({t0:.3f}, {t1:.3f})".format(
+                    rule_id=rule.rule_id,
+                    run_id=run.run_id,
+                    scenario_id=scenario_id,
+                    t0=t0,
+                    t1=t1,
+                )
+            )
+            continue
         tags = {**rule.tags, "rule_id": rule.rule_id}
         matches.append(
             Scenario(
@@ -113,6 +125,8 @@ def _mine_threshold_rule(
 
     segments = _segments_from_condition(stream.t, condition)
     segments = _apply_min_duration(segments, rule.threshold.for_s)
+    segments = _apply_min_gap(segments, rule.threshold.min_gap_s)
+    segments = _apply_cooldown(segments, rule.threshold.cooldown_s)
 
     scenarios: list[Scenario] = []
     for idx, segment in enumerate(segments):
@@ -120,6 +134,18 @@ def _mine_threshold_rule(
         t1 = segment.end + rule.window.post_s
         t0, t1 = _clamp_window(t0, t1, bounds)
         scenario_id = _scenario_id(rule.rule_id, run.run_id, t0, t1, idx)
+        if t1 <= t0:
+            report.add_warning(
+                "Rule '{rule_id}' run '{run_id}' scenario '{scenario_id}' "
+                "skipped due to non-positive window ({t0:.3f}, {t1:.3f})".format(
+                    rule_id=rule.rule_id,
+                    run_id=run.run_id,
+                    scenario_id=scenario_id,
+                    t0=t0,
+                    t1=t1,
+                )
+            )
+            continue
         tags = {**rule.tags, "rule_id": rule.rule_id}
         scenarios.append(
             Scenario(
@@ -178,7 +204,7 @@ def _resolve_signal(
     if threshold.signal == "linear_speed":
         if "vx" in stream.data and "vy" in stream.data:
             values: list[float] = []
-            for vx, vy in zip(stream.data["vx"], stream.data["vy"], strict=False):
+            for vx, vy in zip(stream.data["vx"], stream.data["vy"], strict=True):
                 values.append(math.hypot(float(vx), float(vy)))
             return values
         report.add_warning(f"Rule '{rule_id}': signal 'linear_speed' requires vx/vy")
@@ -206,7 +232,7 @@ def _segments_from_condition(
     segments: list[_Segment] = []
     start: float | None = None
     last_time: float | None = None
-    for t, flag in zip(times, mask, strict=False):
+    for t, flag in zip(times, mask, strict=True):
         if flag and start is None:
             start = float(t)
         if not flag and start is not None:
@@ -223,3 +249,32 @@ def _apply_min_duration(segments: list[_Segment], for_s: float) -> list[_Segment
     if for_s <= 0:
         return segments
     return [segment for segment in segments if (segment.end - segment.start) >= for_s]
+
+
+def _apply_min_gap(segments: list[_Segment], min_gap_s: float | None) -> list[_Segment]:
+    if not segments or not min_gap_s or min_gap_s <= 0:
+        return segments
+    merged: list[_Segment] = []
+    current = segments[0]
+    for segment in segments[1:]:
+        if segment.start - current.end <= min_gap_s:
+            current = _Segment(start=current.start, end=max(current.end, segment.end))
+        else:
+            merged.append(current)
+            current = segment
+    merged.append(current)
+    return merged
+
+
+def _apply_cooldown(
+    segments: list[_Segment], cooldown_s: float | None
+) -> list[_Segment]:
+    if not segments or not cooldown_s or cooldown_s <= 0:
+        return segments
+    filtered: list[_Segment] = []
+    last_end: float | None = None
+    for segment in segments:
+        if last_end is None or segment.start - last_end >= cooldown_s:
+            filtered.append(segment)
+            last_end = segment.end
+    return filtered

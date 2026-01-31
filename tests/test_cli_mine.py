@@ -50,6 +50,7 @@ def test_cli_mine(tmp_path):
         check=False,
         capture_output=True,
         text=True,
+        timeout=30,
     )
     assert result.returncode == 0, result.stderr or result.stdout
 

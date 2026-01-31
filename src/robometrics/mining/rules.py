@@ -69,10 +69,14 @@ def _parse_rules(payload: Any) -> Ruleset:
         raise ValueError("Rules file must include a scenarios list")
 
     rules: list[RuleSpec] = []
+    seen_ids: set[str] = set()
     for idx, item in enumerate(scenarios):
         if not isinstance(item, dict):
             raise ValueError(f"Rule at index {idx} must be a mapping")
         rule_id = _require_str(item, "id")
+        if rule_id in seen_ids:
+            raise ValueError(_fmt(rule_id, "duplicate rule id"))
+        seen_ids.add(rule_id)
         intent = _require_str(item, "intent", rule_id)
         tags = item.get("tags", {})
         if tags is None:

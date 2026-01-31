@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 from robometrics import __version__
 from robometrics.io.run_io import RunReader
@@ -71,11 +72,12 @@ def _handle_mine(args: argparse.Namespace) -> int:
         return 1
 
     scenario_set_id = args.scenario_set_id or f"{run.run_id}-scset"
+    created_at = args.created_at or datetime.now(timezone.utc).isoformat()
     scenario_set, report = mine_scenarios(
         run,
         rules,
         scenario_set_id=scenario_set_id,
-        created_at=args.created_at,
+        created_at=created_at,
     )
 
     if report.errors:
@@ -113,12 +115,12 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--out", required=True)
     ingest_parser.set_defaults(func=_handle_ingest)
 
-    mine_parser = subparsers.add_parser("mine", help="mine workflows")
+    mine_parser = subparsers.add_parser("mine", help="mine scenarios")
     mine_parser.add_argument("--run", required=True)
     mine_parser.add_argument("--rules", required=True)
     mine_parser.add_argument("--out", required=True)
     mine_parser.add_argument("--scenario-set-id", default=None)
-    mine_parser.add_argument("--created-at", default="1970-01-01T00:00:00Z")
+    mine_parser.add_argument("--created-at", default=None)
     mine_parser.set_defaults(func=_handle_mine)
 
     for name in ("eval", "compare"):
