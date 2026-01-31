@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from robometrics import __version__
+from robometrics.io.run_io import RunReader
 from robometrics.io.run_io import RunWriter
+from robometrics.mining.miner import mine_scenarios
+from robometrics.mining.rules import load_rules
 
 
 def _handle_placeholder(args: argparse.Namespace) -> int:
@@ -42,6 +46,54 @@ def _handle_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def _handle_mine(args: argparse.Namespace) -> int:
+    try:
+        rules = load_rules(args.rules)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Failed to load rules: {exc}", file=sys.stderr)
+        return 1
+
+    run_dir = Path(args.run)
+    try:
+        if (run_dir / "meta.json").exists() and (run_dir / "streams.parquet").exists():
+            run, report = RunReader.read(run_dir)
+        else:
+            from robometrics.adapters.demolog import DemoLogAdapter
+
+            run, report = DemoLogAdapter.read(run_dir)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Failed to load run: {exc}", file=sys.stderr)
+        return 1
+
+    if report.errors:
+        for error in report.errors:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    scenario_set_id = args.scenario_set_id or f"{run.run_id}-scset"
+    scenario_set, report = mine_scenarios(
+        run,
+        rules,
+        scenario_set_id=scenario_set_id,
+        created_at=args.created_at,
+    )
+
+    if report.errors:
+        for error in report.errors:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{scenario_set_id}.scset.json"
+    out_path.write_text(
+        json.dumps(scenario_set.to_dict(), sort_keys=True, indent=2),
+        encoding="utf-8",
+    )
+    print(out_path)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="robometrics",
@@ -61,7 +113,15 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--out", required=True)
     ingest_parser.set_defaults(func=_handle_ingest)
 
-    for name in ("mine", "eval", "compare"):
+    mine_parser = subparsers.add_parser("mine", help="mine workflows")
+    mine_parser.add_argument("--run", required=True)
+    mine_parser.add_argument("--rules", required=True)
+    mine_parser.add_argument("--out", required=True)
+    mine_parser.add_argument("--scenario-set-id", default=None)
+    mine_parser.add_argument("--created-at", default="1970-01-01T00:00:00Z")
+    mine_parser.set_defaults(func=_handle_mine)
+
+    for name in ("eval", "compare"):
         subparser = subparsers.add_parser(name, help=f"{name} workflows")
         subparser.set_defaults(func=_handle_placeholder)
 
