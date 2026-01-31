@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 from robometrics import __version__
 from robometrics.io.run_io import RunReader
@@ -71,23 +72,28 @@ def _handle_mine(args: argparse.Namespace) -> int:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
+    run_warnings = list(report.warnings)
     scenario_set_id = args.scenario_set_id or f"{run.run_id}-scset"
     created_at = args.created_at or datetime.now(timezone.utc).isoformat()
-    scenario_set, report = mine_scenarios(
+    scenario_set, mine_report = mine_scenarios(
         run,
         rules,
         scenario_set_id=scenario_set_id,
         created_at=created_at,
     )
 
-    if report.errors:
-        for error in report.errors:
+    if mine_report.errors:
+        for error in mine_report.errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
+    for warning in run_warnings + mine_report.warnings:
+        print(f"WARNING: {warning}", file=sys.stderr)
+
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{scenario_set_id}.scset.json"
+    safe_id = _sanitize_filename(scenario_set_id)
+    out_path = out_dir / f"{safe_id}.scset.json"
     out_path.write_text(
         json.dumps(scenario_set.to_dict(), sort_keys=True, indent=2),
         encoding="utf-8",
@@ -134,6 +140,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
+
+
+def _sanitize_filename(value: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", value.strip())
+    safe = safe.strip("._-")
+    return safe or "scset"
 
 
 if __name__ == "__main__":
