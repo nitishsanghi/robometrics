@@ -1,0 +1,24 @@
+version: "0.1"
+scenarios:
+  - id: "fallback_event"
+    intent: "fallback_event"
+    tags:
+      source: "safety"
+    window:
+      pre_s: 2.0
+      post_s: 3.0
+    event:
+      name: "safety.fallback"
+  - id: "deadlock"
+    intent: "deadlock"
+    tags:
+      source: "threshold"
+    window:
+      pre_s: 1.0
+      post_s: 1.0
+    threshold:
+      stream: "command.twist2d"
+      signal: "linear_speed"
+      op: "gt"
+      value: 0.3
+      for_s: 2.0

@@ -16,6 +16,12 @@ robometrics --help
 python examples/generate_demolog.py --out /tmp/robometrics-data --seed 0
 robometrics ingest --adapter demolog --input /tmp/robometrics-data/baseline/run_000 --out /tmp/robometrics-runs
 ls /tmp/robometrics-runs/run_000
+
+# Mine scenarios from a run
+robometrics mine --run /tmp/robometrics-runs/run_000 \
+  --rules examples/configs/mining_rules.yaml \
+  --out /tmp/robometrics-scenarios \
+  --scenario-set-id demo
 ```
 
 ## Development
