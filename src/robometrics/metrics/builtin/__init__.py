@@ -1,5 +1,5 @@
 """Built-in metrics pack."""
 
-from robometrics.metrics.builtin import motion, task  # noqa: F401
+from robometrics.metrics.builtin import efficiency, motion, reliability, safety, task  # noqa: F401
 
-__all__ = ["motion", "task"]
+__all__ = ["efficiency", "motion", "reliability", "safety", "task"]
