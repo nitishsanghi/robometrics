@@ -5,6 +5,14 @@
 
 robometrics is a lightweight, scenario-based offline evaluation toolkit for robotics logs, designed to help teams compare model behavior across runs and environments before deploying changes to a robot.
 
+## Features (Milestones 0-4)
+
+- Canonical data model with JSON-serializable artifacts (Run, ScenarioSet, ScoreCard primitives).
+- DemoLog format + adapter to ingest demo runs into reusable canonical run artifacts.
+- Scenario mining from YAML rules (event windows + threshold-based triggers).
+- Metrics engine + built-in metrics pack (task/motion/safety/efficiency/reliability).
+- CLI workflows: `ingest` and `mine` with deterministic outputs and schema reporting.
+
 ## Reviewer Quickstart
 
 ```bash
@@ -29,3 +37,7 @@ robometrics mine --run /tmp/robometrics-runs/run_000 \
 - Run tests: `pytest -q`
 - Format code: `black .`
 - Lint: `ruff check .`
+
+## Metrics (optional)
+
+See docs/metrics.md and examples/configs/metrics.yaml for available metrics.
