@@ -93,6 +93,18 @@ def task_progress_rate(ctx: MetricContext) -> MetricResult:
             valid=False,
             notes="missing pose or goal samples",
         )
+    state_x = state.data.get("x") or []
+    state_y = state.data.get("y") or []
+    goal_x = goal.data.get("x") or []
+    goal_y = goal.data.get("y") or []
+    if not state_x or not state_y or not goal_x or not goal_y:
+        return MetricResult(
+            value=None,
+            units="m/s",
+            direction="higher",
+            valid=False,
+            notes="missing pose or goal coordinates",
+        )
     duration = state.t[-1] - state.t[0]
     if duration <= 0:
         return MetricResult(
@@ -103,18 +115,8 @@ def task_progress_rate(ctx: MetricContext) -> MetricResult:
             notes="non-positive duration",
         )
 
-    start_dist = _distance(
-        state.data.get("x", [0.0])[0],
-        state.data.get("y", [0.0])[0],
-        goal.data.get("x", [0.0])[0],
-        goal.data.get("y", [0.0])[0],
-    )
-    end_dist = _distance(
-        state.data.get("x", [0.0])[-1],
-        state.data.get("y", [0.0])[-1],
-        goal.data.get("x", [0.0])[-1],
-        goal.data.get("y", [0.0])[-1],
-    )
+    start_dist = _distance(state_x[0], state_y[0], goal_x[0], goal_y[0])
+    end_dist = _distance(state_x[-1], state_y[-1], goal_x[-1], goal_y[-1])
 
     return MetricResult(
         value=(start_dist - end_dist) / duration,

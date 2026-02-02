@@ -12,7 +12,11 @@ def test_metrics_builtin_constant_velocity_jerk():
     stream = Stream(
         name="state.twist2d",
         t=t,
-        data={"vx": [1.0, 1.0, 1.0, 1.0], "vy": [0.0, 0.0, 0.0, 0.0], "wz": [0.0, 0.0, 0.0, 0.0]},
+        data={
+            "vx": [1.0, 1.0, 1.0, 1.0],
+            "vy": [0.0, 0.0, 0.0, 0.0],
+            "wz": [0.0, 0.0, 0.0, 0.0],
+        },
     )
     run = Run(run_id="r1", streams={"state.twist2d": stream})
     scenario = Scenario(
@@ -54,6 +58,7 @@ def test_metrics_builtin_oscillation_score():
     assert result.valid is True
     assert result.value is not None
     assert result.value > 0
+    assert math.isclose(float(result.value), 2.0, abs_tol=1e-9)
 
 
 def test_metrics_builtin_fallback_count():

@@ -25,7 +25,20 @@ def eff_path_efficiency(ctx: MetricContext) -> MetricResult:
             notes="insufficient pose samples",
         )
 
-    path_length = _path_length(pose.data.get("x", []), pose.data.get("y", []))
+    pose_x = pose.data.get("x") or []
+    pose_y = pose.data.get("y") or []
+    goal_x = goal.data.get("x") or []
+    goal_y = goal.data.get("y") or []
+    if not pose_x or not pose_y or not goal_x or not goal_y:
+        return MetricResult(
+            value=None,
+            units=None,
+            direction="higher",
+            valid=False,
+            notes="missing pose or goal coordinates",
+        )
+
+    path_length = _path_length(pose_x, pose_y)
     if path_length <= 0:
         return MetricResult(
             value=None,
@@ -35,12 +48,7 @@ def eff_path_efficiency(ctx: MetricContext) -> MetricResult:
             notes="non-positive path length",
         )
 
-    start_dist = _distance(
-        pose.data.get("x", [0.0])[0],
-        pose.data.get("y", [0.0])[0],
-        goal.data.get("x", [0.0])[0],
-        goal.data.get("y", [0.0])[0],
-    )
+    start_dist = _distance(pose_x[0], pose_y[0], goal_x[0], goal_y[0])
     efficiency = max(0.0, min(1.0, start_dist / path_length))
     return MetricResult(
         value=efficiency,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from robometrics.metrics.base import MetricContext, metric
 from robometrics.model.metric_result import MetricResult
 
@@ -110,10 +112,35 @@ def safety_min_clearance(ctx: MetricContext) -> MetricResult:
             valid=False,
             notes="missing min_distance",
         )
+    try:
+        value = _min_valid_distance(distances)
+    except ValueError:
+        return MetricResult(
+            value=None,
+            units="m",
+            direction="higher",
+            valid=False,
+            notes="no valid min_distance samples",
+        )
     return MetricResult(
-        value=min(float(value) for value in distances),
+        value=value,
         units="m",
         direction="higher",
         valid=True,
         notes=None,
     )
+
+
+def _min_valid_distance(distances: list[object]) -> float:
+    values: list[float] = []
+    for value in distances:
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(numeric):
+            continue
+        values.append(numeric)
+    if not values:
+        raise ValueError("no valid min_distance samples")
+    return min(values)
