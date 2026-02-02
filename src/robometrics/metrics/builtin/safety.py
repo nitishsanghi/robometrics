@@ -83,7 +83,7 @@ def safety_speed_limit_violations(ctx: MetricContext) -> MetricResult:
 
     count = 0
     for x, y in zip(vx, vy, strict=True):
-        speed = (float(x) ** 2 + float(y) ** 2) ** 0.5
+        speed = math.hypot(float(x), float(y))
         if speed > speed_limit:
             count += 1
 
