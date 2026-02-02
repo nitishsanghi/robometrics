@@ -1,0 +1,144 @@
+"""Task-related metrics."""
+
+from __future__ import annotations
+
+import math
+
+from robometrics.metrics.base import MetricContext, metric
+from robometrics.model.metric_result import MetricResult
+
+
+@metric(
+    name="task.success",
+    requires_streams=["mission.status"],
+    description="Whether the mission status ends in succeeded.",
+)
+def task_success(ctx: MetricContext) -> MetricResult:
+    stream = ctx.streams["mission.status"]
+    statuses = stream.data.get("status", [])
+    if not statuses:
+        return MetricResult(
+            value=None,
+            units=None,
+            direction="higher",
+            valid=False,
+            notes="missing status samples",
+        )
+    return MetricResult(
+        value=str(statuses[-1]) == "succeeded",
+        units=None,
+        direction="higher",
+        valid=True,
+        notes=None,
+    )
+
+
+@metric(
+    name="task.time_to_goal",
+    requires_streams=["mission.status"],
+    description="Seconds from first active to first succeeded.",
+)
+def task_time_to_goal(ctx: MetricContext) -> MetricResult:
+    stream = ctx.streams["mission.status"]
+    times = stream.t
+    statuses = stream.data.get("status", [])
+    if not times or not statuses:
+        return MetricResult(
+            value=None,
+            units="s",
+            direction="lower",
+            valid=False,
+            notes="missing status samples",
+        )
+
+    t_active = None
+    for t, status in zip(times, statuses, strict=True):
+        if str(status) == "active":
+            t_active = float(t)
+            break
+
+    t_succeeded = None
+    for t, status in zip(times, statuses, strict=True):
+        if str(status) == "succeeded":
+            t_succeeded = float(t)
+            break
+
+    if t_active is None:
+        t_active = ctx.scenario.t0
+    if t_succeeded is None:
+        t_succeeded = ctx.scenario.t1
+
+    return MetricResult(
+        value=max(0.0, t_succeeded - t_active),
+        units="s",
+        direction="lower",
+        valid=True,
+        notes=None,
+    )
+
+
+@metric(
+    name="task.progress_rate",
+    requires_streams=["state.pose2d", "mission.goal2d"],
+    description="(start distance - end distance) / duration.",
+)
+def task_progress_rate(ctx: MetricContext) -> MetricResult:
+    state = ctx.streams["state.pose2d"]
+    goal = ctx.streams["mission.goal2d"]
+    if not state.t or not goal.t:
+        return MetricResult(
+            value=None,
+            units="m/s",
+            direction="higher",
+            valid=False,
+            notes="missing pose or goal samples",
+        )
+    duration = state.t[-1] - state.t[0]
+    if duration <= 0:
+        return MetricResult(
+            value=None,
+            units="m/s",
+            direction="higher",
+            valid=False,
+            notes="non-positive duration",
+        )
+
+    start_dist = _distance(
+        state.data.get("x", [0.0])[0],
+        state.data.get("y", [0.0])[0],
+        goal.data.get("x", [0.0])[0],
+        goal.data.get("y", [0.0])[0],
+    )
+    end_dist = _distance(
+        state.data.get("x", [0.0])[-1],
+        state.data.get("y", [0.0])[-1],
+        goal.data.get("x", [0.0])[-1],
+        goal.data.get("y", [0.0])[-1],
+    )
+
+    return MetricResult(
+        value=(start_dist - end_dist) / duration,
+        units="m/s",
+        direction="higher",
+        valid=True,
+        notes=None,
+    )
+
+
+@metric(
+    name="task.recovery_count",
+    description="Count of task.recovery events.",
+)
+def task_recovery_count(ctx: MetricContext) -> MetricResult:
+    count = sum(1 for event in ctx.events if event.name == "task.recovery")
+    return MetricResult(
+        value=count,
+        units=None,
+        direction="lower",
+        valid=True,
+        notes=None,
+    )
+
+
+def _distance(x1: float, y1: float, x2: float, y2: float) -> float:
+    return math.hypot(float(x2) - float(x1), float(y2) - float(y1))
