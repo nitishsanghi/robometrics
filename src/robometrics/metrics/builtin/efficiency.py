@@ -48,7 +48,16 @@ def eff_path_efficiency(ctx: MetricContext) -> MetricResult:
         )
 
     start_dist = distance(pose_x[0], pose_y[0], goal_x[0], goal_y[0])
-    efficiency = max(0.0, min(1.0, start_dist / path_length))
+    ratio = start_dist / path_length
+    efficiency = max(0.0, min(1.0, ratio))
+    if ratio > 1.0:
+        return MetricResult(
+            value=efficiency,
+            units=None,
+            direction="higher",
+            valid=False,
+            notes="path shorter than start distance: run ended before reaching goal",
+        )
     return MetricResult(
         value=efficiency,
         units=None,
