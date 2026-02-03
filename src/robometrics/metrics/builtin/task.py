@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import math
-
 from robometrics.metrics.base import MetricContext, metric
+from robometrics.metrics.util import distance
 from robometrics.model.metric_result import MetricResult
 
 
@@ -115,8 +114,8 @@ def task_progress_rate(ctx: MetricContext) -> MetricResult:
             notes="non-positive duration",
         )
 
-    start_dist = _distance(state_x[0], state_y[0], goal_x[0], goal_y[0])
-    end_dist = _distance(state_x[-1], state_y[-1], goal_x[-1], goal_y[-1])
+    start_dist = distance(state_x[0], state_y[0], goal_x[0], goal_y[0])
+    end_dist = distance(state_x[-1], state_y[-1], goal_x[-1], goal_y[-1])
 
     return MetricResult(
         value=(start_dist - end_dist) / duration,
@@ -140,7 +139,3 @@ def task_recovery_count(ctx: MetricContext) -> MetricResult:
         valid=True,
         notes=None,
     )
-
-
-def _distance(x1: float, y1: float, x2: float, y2: float) -> float:
-    return math.hypot(float(x2) - float(x1), float(y2) - float(y1))

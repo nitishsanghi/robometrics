@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import math
-
 from robometrics.metrics.base import MetricContext, metric
+from robometrics.metrics.util import distance
 from robometrics.model.metric_result import MetricResult
 
 
@@ -48,7 +47,7 @@ def eff_path_efficiency(ctx: MetricContext) -> MetricResult:
             notes="non-positive path length",
         )
 
-    start_dist = _distance(pose_x[0], pose_y[0], goal_x[0], goal_y[0])
+    start_dist = distance(pose_x[0], pose_y[0], goal_x[0], goal_y[0])
     efficiency = max(0.0, min(1.0, start_dist / path_length))
     return MetricResult(
         value=efficiency,
@@ -93,7 +92,7 @@ def eff_stop_time_ratio(ctx: MetricContext) -> MetricResult:
         dt = stream.t[i] - stream.t[i - 1]
         if dt <= 0:
             continue
-        speed = math.hypot(float(vx[i]), float(vy[i]))
+        speed = distance(vx[i], vy[i], 0.0, 0.0)
         if speed < threshold:
             stop_time += dt
 
@@ -106,14 +105,10 @@ def eff_stop_time_ratio(ctx: MetricContext) -> MetricResult:
     )
 
 
-def _distance(x1: float, y1: float, x2: float, y2: float) -> float:
-    return math.hypot(float(x2) - float(x1), float(y2) - float(y1))
-
-
 def _path_length(xs: list[float], ys: list[float]) -> float:
     if len(xs) < 2 or len(ys) < 2:
         return 0.0
     length = 0.0
     for i in range(1, min(len(xs), len(ys))):
-        length += _distance(xs[i - 1], ys[i - 1], xs[i], ys[i])
+        length += distance(xs[i - 1], ys[i - 1], xs[i], ys[i])
     return length
