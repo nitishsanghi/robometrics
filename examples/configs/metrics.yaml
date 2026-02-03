@@ -1,0 +1,14 @@
+version: "0.1"
+metrics:
+  - name: "motion.jerk_p95"
+  - name: "motion.jerk_p99"
+  - name: "motion.oscillation_score"
+  - name: "task.success"
+  - name: "task.time_to_goal"
+  - name: "safety.fallback_count"
+  - name: "safety.speed_limit_violations"
+    config:
+      speed_limit_mps: 1.5
+  - name: "eff.stop_time_ratio"
+    config:
+      stop_speed_mps: 0.05
